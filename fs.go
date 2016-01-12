@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-func retryStat(path string) os.FileInfo {
+func retryLStat(path string) os.FileInfo {
 	for {
 		if res, err := os.Stat(path); err == nil {
 			return res
@@ -29,6 +29,17 @@ func retryListDir(path string) (listing []os.FileInfo) {
 			}
 		}
 		fmt.Println("Readdir("+path+") failed:", err)
+		time.Sleep(RetryTimeout)
+	}
+}
+
+func retryReadlink(path string) string {
+	for {
+		if name, err := os.Readlink(path); err == nil {
+			return name
+		} else {
+			fmt.Println("Readlink("+path+") failed:", err)
+		}
 		time.Sleep(RetryTimeout)
 	}
 }

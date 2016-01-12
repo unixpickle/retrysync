@@ -14,7 +14,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	sourceStat := retryStat(os.Args[1])
+	sourceStat := retryLStat(os.Args[1])
 	if sourceStat.IsDir() {
 		fmt.Println("Performing recursive copy...")
 		if err := retryCopyDir(sourceStat, os.Args[1], os.Args[2]); err != nil {

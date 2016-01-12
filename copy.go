@@ -44,9 +44,12 @@ func retryCopyDir(sourceInfo os.FileInfo, source, destination string) error {
 }
 
 func retryCopyFile(sourceInfo os.FileInfo, source, destination string) error {
-	if destInfo, err := os.Stat(destination); err == nil {
+	if destInfo, err := os.Lstat(destination); err == nil {
 		if destInfo.IsDir() {
 			return errors.New("target exists but is a directory: " + destination)
+		}
+		if (destInfo.Mode() & os.ModeSymlink) != (sourceInfo.Mode() & os.ModeSymlink) {
+			return errors.New("target exists but symlink-ness differs: " + destination)
 		}
 		if destInfo.Size() == sourceInfo.Size() {
 			fmt.Println("Skipping file:", destination)
@@ -54,6 +57,12 @@ func retryCopyFile(sourceInfo os.FileInfo, source, destination string) error {
 		}
 		fmt.Println("Overwriting file:", destination)
 		os.Remove(destination)
+	}
+
+	if (sourceInfo.Mode() & os.ModeSymlink) != 0 {
+		fmt.Println("Copying link:", source)
+		linkDest := retryReadlink(source)
+		return os.Symlink(linkDest, destination)
 	}
 
 	fmt.Println("Copying file:", source)
