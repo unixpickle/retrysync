@@ -19,9 +19,6 @@ func retryCopyDir(sourceInfo os.FileInfo, source, destination string) error {
 			return err
 		}
 	}
-	if err := os.Chtimes(destination, sourceInfo.ModTime(), sourceInfo.ModTime()); err != nil {
-		return err
-	}
 
 	listing := retryListDir(source)
 	for _, info := range listing {
@@ -36,6 +33,11 @@ func retryCopyDir(sourceInfo os.FileInfo, source, destination string) error {
 				return err
 			}
 		}
+	}
+
+	// Change the times after copying the contents to avoid updating the modification time.
+	if err := os.Chtimes(destination, sourceInfo.ModTime(), sourceInfo.ModTime()); err != nil {
+		return err
 	}
 
 	return nil
